@@ -2,10 +2,7 @@
 #![allow(clippy::unknown_clippy_lints)]
 #![allow(clippy::upper_case_acronyms)]
 
-use std::fs::File;
-use std::io::{self, BufRead};
 use std::io::{Error};
-use std::path::Path;
 
 // #[macro_use]
 // extern crate log;
@@ -73,29 +70,31 @@ impl World {
 
 
 
-pub fn parse_file<P>(filename: P) -> Result<World, Error> where P: AsRef<Path>,
+pub fn parse_file(data: &str) -> Result<World, Error>
 {
     // Get the `LexerDef` for the `calc` language.
     let lexerdef = obj_l::lexerdef();
-    let file = File::open(filename)?;
 
+    
+    let buf = String::from(data);
+    
     let mut w = World::new("") ;
-    for line in io::BufReader::new(file).lines() {
-        let l = line.as_ref().unwrap();
+
+    for l in buf.split('\n') {
         if l.trim().is_empty() {
             continue;
         }
         let re = Regex::new(r"\#.*$").unwrap();
         let ll = re.replace(l," ");
-        println!("> {}",ll);
+        // println!("> {}",ll);
 
         // Now we create a lexer with the `lexer` method with which we can lex each line.
         let lexer = lexerdef.lexer(&ll);
         // Pass the lexer to the parser and lex and parse the input.
-        let (res, errs) = obj_y::parse(&lexer);
-        for e in errs {
-            print!(">>> {}\n", e.pp(&lexer, &obj_y::token_epp));
-        }
+        let (res, _errs) = obj_y::parse(&lexer);
+        // for e in errs {
+        //     print!(">>> {}\n", e.pp(&lexer, &obj_y::token_epp));
+        // }
 
         if let Some(Ok(r)) = res {
             match r {
